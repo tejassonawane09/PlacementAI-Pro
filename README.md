@@ -11,7 +11,7 @@ The project is built with **Python, Scikit-learn, Streamlit, and Plotly** and pr
 👉 Deployed Streamlit link here
 
 Example:
-[https://your-app-name.streamlit.app/](https://placementai-pro-dashboard.streamlit.app/)
+https://placementai-pro-dashboard.streamlit.app/
 
 ---
 
