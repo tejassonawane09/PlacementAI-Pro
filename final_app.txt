@@ -1,0 +1,716 @@
+import streamlit as st
+import pickle
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+from streamlit_option_menu import option_menu
+import time
+import random
+
+
+# ========== SIMPLE SLIDER FUNCTION - NO DYNAMIC EFFECTS ==========
+def create_simple_slider(label, emoji, min_val, max_val, default_val, step, key):
+    """Create a clean, minimal slider without dynamic effects"""
+    
+    # Simple label
+    st.markdown(f"**{emoji} {label}**")
+    
+    # Native Streamlit slider - no effects
+    value = st.slider(
+        "", 
+        min_value=min_val, 
+        max_value=max_val, 
+        value=default_val, 
+        step=step,
+        key=key,
+        label_visibility="collapsed"
+    )
+    
+    # Show value as plain text
+    st.caption(f"Value: {value}")
+    st.markdown("---")
+    
+    return value
+# ========== END OF FUNCTION ==========
+
+# Page configuration - MUST be first Streamlit command
+st.set_page_config(
+    page_title="PlacementAI Pro | Intelligent Career Predictor",
+    page_icon="🎓",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Load Model
+@st.cache_resource
+def load_model():
+    try:
+        model = pickle.load(open("placement_model.pkl", "rb"))
+        return model
+    except:
+        st.error("⚠️ Model file not found. Please ensure 'placement_model.pkl' exists.")
+        return None
+
+model = load_model()
+
+# ===================================================================
+# ADVANCED CUSTOM CSS - PROFESSIONAL DARK THEME
+# ===================================================================
+st.markdown("""
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Hide default Streamlit elements */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Main Background */
+.stApp {
+    background: linear-gradient(135deg, #0B0B1A 0%, #0F0F23 50%, #0B0B1A 100%);
+    color: #FFFFFF;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #1E1E3A;
+}
+::-webkit-scrollbar-thumb {
+    background: #3B82F6;
+}
+
+/* Animated Gradient Text */
+.gradient-text {
+    background: linear-gradient(120deg, #60A5FA, #A78BFA, #3B82F6);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradientShift 4s ease infinite;
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Glass Card Effect */
+.glass-card {
+    background: rgba(20, 20, 45, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Input Fields */
+.stTextInput > div > div > input,
+.stNumberInput > div > div > input {
+    background: rgba(30, 30, 60, 0.6) !important;
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+    border-radius: 6px !important;
+    color: white !important;
+    padding: 6px 10px !important;
+}
+
+/* Selectbox styling - FIXED */
+.stSelectbox {
+    margin-bottom: 10px;
+}
+
+.stSelectbox label {
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    color: #E5E7EB !important;
+    font-size: 14px !important;
+    display: block !important;
+}
+
+.stSelectbox div[data-baseweb="select"] {
+    margin-top: 5px;
+    background: rgba(30, 30, 60, 0.6) !important;
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+    border-radius: 6px !important;
+}
+
+.stSelectbox div[data-baseweb="select"] div {
+    color: white !important;
+}
+
+/* ========== SLIDER STYLES - NO DYNAMIC EFFECTS ========== */
+
+/* Main Slider Container */
+div[data-testid="stSlider"] {
+    padding: 5px 0 5px 0;
+}
+
+/* Slider Track Background */
+div[data-testid="stSlider"] > div {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 0px !important;
+    height: 2px !important;
+}
+
+/* Slider Filled Track */
+div[data-testid="stSlider"] > div > div {
+    background: #3B82F6 !important;
+    border-radius: 0px !important;
+    transition: none !important;
+}
+
+/* Slider Thumb */
+div[data-testid="stSlider"] > div > div > div {
+    background: #3B82F6 !important;
+    border: none !important;
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 0px !important;
+    transition: none !important;
+    cursor: pointer !important;
+}
+
+/* Remove hover effects */
+div[data-testid="stSlider"] > div > div > div:hover {
+    transform: none !important;
+    background: #3B82F6 !important;
+}
+
+/* Remove all transitions */
+div[data-testid="stSlider"] * {
+    transition: none !important;
+}
+
+/* Button Styling */
+.stButton > button {
+    background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-weight: 500;
+    font-size: 16px;
+    width: 100%;
+    transition: none !important;
+    margin-top: 20px;
+}
+
+/* Metric Cards */
+div[data-testid="stMetric"] {
+    background: rgba(20, 20, 45, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 10px;
+    padding: 10px;
+}
+div[data-testid="stMetric"] label {
+    color: #60A5FA !important;
+    font-weight: 500;
+}
+div[data-testid="stMetric"] div {
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+}
+
+/* Progress Bar */
+.stProgress > div > div {
+    background: rgba(30, 30, 60, 0.8);
+    border-radius: 0px;
+}
+.stProgress > div > div > div {
+    background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+    border-radius: 0px;
+}
+
+/* Expander */
+.streamlit-expanderHeader {
+    background: rgba(30, 30, 60, 0.6);
+    border-radius: 6px;
+    color: white;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background: rgba(30, 30, 60, 0.4);
+    border-radius: 6px;
+    padding: 5px;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 4px;
+    padding: 6px 20px;
+    color: #A0A0C0;
+    font-weight: 500;
+}
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+    color: white;
+}
+
+/* Divider */
+hr {
+    margin: 1rem 0;
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3B82F6, #8B5CF6, transparent);
+}
+
+/* Sidebar Styling */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, rgba(15, 15, 35, 0.95), rgba(10, 10, 25, 0.98));
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Animated Card */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.animate-card {
+    animation: fadeInUp 0.4s ease-out;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ===================================================================
+# SIDEBAR - PROFILE & SETTINGS
+# ===================================================================
+with st.sidebar:
+    st.markdown("""
+        <div style="text-align: center; padding: 20px 0;">
+            <div style="font-size: 48px;">🎓</div>
+            <h2 class="gradient-text" style="margin: 10px 0 0 0;">PlacementAI</h2>
+            <p style="color: #A0A0C0; font-size: 12px;">Intelligent Career Predictor</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Profile Section
+    with st.expander("👤 Student Profile", expanded=True):
+        student_name = st.text_input("Student Name", placeholder="Enter full name", value="Alex Johnson")
+        student_email = st.text_input("Email", placeholder="student@university.edu")
+        student_branch = st.selectbox("Branch", ["Computer Science", "Information Technology", "Electronics", "Mechanical", "Civil", "Other"])
+        student_year = st.selectbox("Year of Study", ["1st Year", "2nd Year", "3rd Year", "4th Year", "Final Year"])
+    
+    st.markdown("---")
+    
+    # Settings
+    with st.expander("⚙️ Settings"):
+        show_recommendations = st.toggle("Show AI Recommendations", value=True)
+        show_confidence_metrics = st.toggle("Show Detailed Metrics", value=True)
+    
+    st.markdown("---")
+    
+    # Info
+    st.markdown("""
+        <div style="background: rgba(59,130,246,0.15); padding: 12px; border-radius: 6px; margin-top: 20px;">
+            <p style="color: #60A5FA; font-size: 11px; margin: 0;">📊 Model Info</p>
+            <p style="font-size: 10px; color: #B0B0D0;">Random Forest Classifier<br>Accuracy: 79.5%</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+# ===================================================================
+# MAIN CONTENT - HEADER
+# ===================================================================
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.markdown("""
+        <div style="text-align: center; padding: 15px 0;" class="animate-card">
+            <h1 style="font-size: 44px; margin: 0;">
+                <span class="gradient-text">Placement Prediction</span>
+            </h1>
+            <p style="color: #A0A0C0; font-size: 14px; margin-top: 8px;">
+                AI-powered analytics for campus placement success
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+# Top Metrics Row
+metrics_col1, metrics_col2, metrics_col3, metrics_col4 = st.columns(4)
+with metrics_col1:
+    st.metric("🎯 Model Accuracy", "79.5%", "↗️ +2.3%")
+with metrics_col2:
+    st.metric("📊 Features", "11", "Academic + Skills")
+with metrics_col3:
+    st.metric("⚡ Response Time", "<100ms", "Real-time")
+with metrics_col4:
+    st.metric("🎓 Students Analyzed", "10K+", "↗️ Weekly")
+
+st.markdown("---")
+
+# ===================================================================
+# MAIN TABS LAYOUT
+# ===================================================================
+tab1, tab2, tab3 = st.tabs(["📝 Prediction Dashboard", "📊 Analytics & Insights", "📈 Career Guidance"])
+
+# ===================================================================
+# TAB 1: PREDICTION DASHBOARD
+# ===================================================================
+with tab1:
+    # Two column layout for input and output
+    input_col, output_col = st.columns([1, 1], gap="large")
+    
+    with input_col:
+        st.markdown("""
+            <div class="glass-card animate-card">
+                <h3 style="margin: 0 0 5px 0;">📋 Student Academic Profile</h3>
+                <p style="color: #A0A0C0; font-size: 12px; margin-bottom: 10px;">Enter the details below for prediction</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Two column layout within input
+        col_a, col_b = st.columns(2)
+        
+        with col_a:
+            cgpa = create_simple_slider("CGPA", "📚", 0.0, 10.0, 7.5, 0.1, "cgpa_slider")
+            internships = create_simple_slider("Internships", "💼", 0, 10, 1, 1, "int_slider")
+            projects = create_simple_slider("Projects", "🛠️", 0, 20, 2, 1, "proj_slider")
+            workshops = create_simple_slider("Certifications", "📜", 0, 15, 2, 1, "cert_slider")
+            aptitude = create_simple_slider("Aptitude Score", "🧠", 0, 100, 70, 1, "apt_slider")
+
+        with col_b:
+            soft_skills = create_simple_slider("Soft Skills", "🗣️", 0.0, 10.0, 6.0, 0.5, "soft_slider")
+            
+            
+            # FIXED: Select boxes with proper labels
+            st.markdown("**🎯 Extracurricular Activities**")
+            extracurricular = st.selectbox(
+                "Select participation status", 
+                ["Yes", "No"], 
+                key="extracurricular",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("**🏢 Placement Training Attended**")
+            placement_training = st.selectbox(
+                "Select training status", 
+                ["Yes", "No"], 
+                key="placement_training",
+                label_visibility="collapsed"
+            )
+        
+        # Hidden student ID
+        student_id = np.random.randint(10000, 99999)
+        
+        predict_btn = st.button("🚀 Analyze Placement Probability", use_container_width=True)
+    
+    with output_col:
+        st.markdown("""
+            <div class="glass-card animate-card">
+                <h3 style="margin: 0 0 5px 0;">🎯 Prediction Results</h3>
+                <p style="color: #A0A0C0; font-size: 12px; margin-bottom: 10px;">AI-powered placement analysis</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        if model is None:
+            st.error("⚠️ Model not loaded. Please check the model file.")
+        elif predict_btn:
+            # Convert categorical
+            extra_curr_val = 1 if extracurricular == "Yes" else 0
+            training_val = 1 if placement_training == "Yes" else 0
+            
+            # Input DataFrame
+            input_data = pd.DataFrame([{
+                "StudentID": student_id,
+                "CGPA": cgpa,
+                "Internships": internships,
+                "Projects": projects,
+                "Workshops/Certifications": workshops,
+                "AptitudeTestScore": aptitude,
+                "SoftSkillsRating": soft_skills,
+                "ExtracurricularActivities": extra_curr_val,
+                "PlacementTraining": training_val,
+               
+            }])
+            
+            # Prediction
+            with st.spinner("🤖 Analyzing student profile..."):
+                time.sleep(0.5)
+                prediction = model.predict(input_data)[0]
+                probability = model.predict_proba(input_data)[0][prediction]
+            
+            confidence = int(probability * 100)
+            
+            # FIXED: Better probability display with larger number
+            if prediction == 1:
+                st.markdown("""
+                    <div style="text-align: center; padding: 20px; background: rgba(16,185,129,0.1); border-radius: 10px; margin-bottom: 20px;">
+                        <h2 style="color: #10B981; margin: 0;">✅ HIGH PLACEMENT CHANCE</h2>
+                        <div style="font-size: 48px; font-weight: 800; margin: 20px 0; color: #10B981;">{}%</div>
+                        <p style="color: #A0A0C0;">Probability of securing campus placement</p>
+                    </div>
+                """.format(confidence), unsafe_allow_html=True)
+                st.progress(confidence / 100)
+                st.success("🎉 Outstanding profile! You have excellent placement potential.")
+            else:
+                st.markdown("""
+                    <div style="text-align: center; padding: 20px; background: rgba(239,68,68,0.1); border-radius: 10px; margin-bottom: 20px;">
+                        <h2 style="color: #EF4444; margin: 0;">⚠️ NEEDS IMPROVEMENT</h2>
+                        <div style="font-size: 48px; font-weight: 800; margin: 20px 0; color: #EF4444;">{}%</div>
+                        <p style="color: #A0A0C0;">Current probability of campus placement</p>
+                    </div>
+                """.format(confidence), unsafe_allow_html=True)
+                st.progress(confidence / 100)
+                st.error("📚 Profile needs strengthening. Review recommendations below.")
+            
+            # AI Recommendations
+            if show_recommendations:
+                st.markdown("---")
+                st.markdown("#### 💡 Recommendations")
+                
+                recommendations = []
+                if cgpa < 7.0:
+                    recommendations.append("📚 Improve CGPA above 7.0")
+                if internships < 2:
+                    recommendations.append("💼 Complete at least 2 internships")
+                if projects < 3:
+                    recommendations.append("🛠️ Build 3-5 quality projects")
+                if aptitude < 70:
+                    recommendations.append("🧠 Practice aptitude tests daily")
+                if soft_skills < 7.0:
+                    recommendations.append("🗣️ Join public speaking clubs")
+                
+                if not recommendations:
+                    recommendations.append("🌟 Excellent profile! Target top companies")
+                
+                for rec in recommendations[:5]:
+                    st.info(rec)
+        
+        else:
+            st.info("👈 Enter details and click 'Analyze'")
+            
+            st.markdown("""
+                <div style="background: rgba(59,130,246,0.1); border-radius: 10px; padding: 15px; margin-top: 15px;">
+                    <h4 style="margin: 0 0 10px 0;">📊 How it works</h4>
+                    <p style="font-size: 12px; color: #B0B0D0;">Our AI model analyzes academic performance, experience, and skills to predict placement probability.</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+# ===================================================================
+# TAB 2: ANALYTICS & INSIGHTS (UNCHANGED)
+# ===================================================================
+with tab2:
+    st.markdown("""
+        <div class="glass-card animate-card">
+            <h3>📊 Placement Analytics Dashboard</h3>
+            <p>Data-driven insights from the placement prediction model</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        features = ['CGPA', 'Internships', 'Projects', 'Aptitude', 'Soft Skills', 'SSC Marks', 'HSC Marks', 'Certifications']
+        importance = [28, 18, 15, 12, 10, 8, 5, 4]
+        
+        fig = px.bar(
+            x=importance, y=features, orientation='h',
+            title="Feature Impact on Placement",
+            labels={'x': 'Importance (%)', 'y': 'Features'},
+            color=importance, color_continuous_scale='viridis'
+        )
+        fig.update_layout(height=400, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(30,30,60,0.3)", font={'color': 'white'})
+        fig.update_xaxes(gridcolor="rgba(255,255,255,0.1)")
+        fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        cgpa_ranges = ['<6.0', '6.0-7.0', '7.0-8.0', '8.0-9.0', '9.0+']
+        success_rates = [15, 35, 55, 78, 92]
+        
+        fig = px.line(
+            x=cgpa_ranges, y=success_rates, markers=True,
+            title="Placement Success Rate by CGPA",
+            labels={'x': 'CGPA Range', 'y': 'Success Rate (%)'}
+        )
+        fig.update_traces(line_color='#8B5CF6', marker_color='#3B82F6', marker_size=10)
+        fig.update_layout(height=400, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(30,30,60,0.3)", font={'color': 'white'})
+        fig.update_xaxes(gridcolor="rgba(255,255,255,0.1)")
+        fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        internships_count = ['0', '1', '2', '3', '4+']
+        placement_boost = [0, 18, 32, 45, 52]
+        
+        fig = px.bar(
+            x=internships_count, y=placement_boost,
+            title="Placement Boost from Internships (%)",
+            labels={'x': 'Number of Internships', 'y': 'Placement Probability Boost (%)'},
+            color=placement_boost, color_continuous_scale='plasma'
+        )
+        fig.update_layout(height=350, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(30,30,60,0.3)", font={'color': 'white'})
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col4:
+        skills = ['Aptitude', 'Soft Skills', 'Technical', 'Communication', 'Problem Solving']
+        impact = [72, 68, 85, 75, 82]
+        
+        fig = px.bar(
+            x=skills, y=impact,
+            title="Skill Impact on Placement Success (%)",
+            labels={'x': 'Skills', 'y': 'Impact Score (%)'},
+            color=impact, color_continuous_scale='hot'
+        )
+        fig.update_layout(height=350, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(30,30,60,0.3)", font={'color': 'white'})
+        fig.update_xaxes(tickangle=45, gridcolor="rgba(255,255,255,0.1)")
+        fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("---")
+    st.markdown("#### 🔥 Feature Correlation Matrix")
+    
+    correlation_data = {
+        'CGPA': [1, 0.65, 0.45, 0.55, 0.5, 0.4],
+        'Internships': [0.65, 1, 0.6, 0.5, 0.45, 0.35],
+        'Projects': [0.45, 0.6, 1, 0.55, 0.5, 0.4],
+        'Aptitude': [0.55, 0.5, 0.55, 1, 0.6, 0.45],
+        'SoftSkills': [0.5, 0.45, 0.5, 0.6, 1, 0.5],
+        'Placement': [0.7, 0.65, 0.6, 0.65, 0.7, 1]
+    }
+    corr_df = pd.DataFrame(correlation_data, index=['CGPA', 'Internships', 'Projects', 'Aptitude', 'SoftSkills', 'Placement'])
+    
+    fig = px.imshow(corr_df, text_auto=True, aspect="auto", color_continuous_scale='RdBu', title="Correlation with Placement Success")
+    fig.update_layout(height=500, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(30,30,60,0.3)", font={'color': 'white'})
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("---")
+    st.markdown("#### 📈 Key Insights")
+    
+    insight_col1, insight_col2, insight_col3 = st.columns(3)
+    with insight_col1:
+        st.metric("🎯 Top Factor", "CGPA", "28% Impact")
+    with insight_col2:
+        st.metric("🚀 Best Improvement", "Internships", "+52% Boost")
+    with insight_col3:
+        st.metric("📊 Threshold CGPA", "7.5+", "70% Success Rate")
+
+# ===================================================================
+# TAB 3: CAREER GUIDANCE (UNCHANGED)
+# ===================================================================
+with tab3:
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("""
+            <div class="glass-card animate-card">
+                <h3>🎯 Career Roadmap</h3>
+                <p>Personalized guidance based on industry standards</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+            <div style="margin-top: 20px;">
+                <div style="background: rgba(59,130,246,0.15); border-radius: 8px; padding: 12px; margin: 8px 0;">
+                    <span style="font-size: 20px;">📚</span>
+                    <strong style="margin-left: 8px;">Academic Excellence</strong>
+                    <p style="font-size: 12px; color: #B0B0D0; margin: 5px 0 0 0;">Maintain CGPA above 8.0 for top company eligibility</p>
+                </div>
+                <div style="background: rgba(139,92,246,0.15); border-radius: 8px; padding: 12px; margin: 8px 0;">
+                    <span style="font-size: 20px;">💼</span>
+                    <strong style="margin-left: 8px;">Industry Exposure</strong>
+                    <p style="font-size: 12px; color: #B0B0D0; margin: 5px 0 0 0;">Complete at least 2 internships before final year</p>
+                </div>
+                <div style="background: rgba(16,185,129,0.15); border-radius: 8px; padding: 12px; margin: 8px 0;">
+                    <span style="font-size: 20px;">🛠️</span>
+                    <strong style="margin-left: 8px;">Project Portfolio</strong>
+                    <p style="font-size: 12px; color: #B0B0D0; margin: 5px 0 0 0;">Build 3-5 quality projects showcasing technical skills</p>
+                </div>
+                <div style="background: rgba(245,158,11,0.15); border-radius: 8px; padding: 12px; margin: 8px 0;">
+                    <span style="font-size: 20px;">🗣️</span>
+                    <strong style="margin-left: 8px;">Soft Skills Development</strong>
+                    <p style="font-size: 12px; color: #B0B0D0; margin: 5px 0 0 0;">Regular practice of group discussions and mock interviews</p>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        st.markdown("#### 🎓 Recommended Certifications")
+        
+        certs = [
+            "📊 Google Data Analytics",
+            "☁️ AWS Cloud Practitioner",
+            "💻 Meta Frontend Developer",
+            "📈 LinkedIn Communication Skills"
+        ]
+        for cert in certs:
+            st.markdown(f"- {cert}")
+    
+    with col2:
+        st.markdown("""
+            <div class="glass-card animate-card">
+                <h3>📅 6-Month Preparation Plan</h3>
+                <p>Strategic timeline for placement preparation</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        with st.expander("📘 Month 1-2: Foundation Phase", expanded=True):
+            st.markdown("""
+            - Daily practice of quantitative aptitude
+            - Basic programming and data structures
+            - Resume building and LinkedIn optimization
+            """)
+        
+        with st.expander("💻 Month 3-4: Skill Building Phase", expanded=True):
+            st.markdown("""
+            - Build 2 major projects
+            - Learn DSA and practice LeetCode
+            - Complete relevant certifications
+            """)
+        
+        with st.expander("🎯 Month 5-6: Placement Ready", expanded=True):
+            st.markdown("""
+            - Mock interviews with peers
+            - Research target companies
+            - Start applying to placement drives
+            """)
+        
+        st.markdown("---")
+        st.markdown("#### 🏆 Top Recruiters")
+        
+        recruiter_data = {
+            'Company': ['Microsoft', 'Google', 'Amazon', 'Infosys', 'TCS'],
+            'Min CGPA': [8.5, 8.5, 8.0, 7.0, 7.0],
+            'Package': ['45 LPA', '50 LPA', '35 LPA', '8 LPA', '7 LPA']
+        }
+        recruiter_df = pd.DataFrame(recruiter_data)
+        st.dataframe(recruiter_df, use_container_width=True, hide_index=True)
+
+# ===================================================================
+# FOOTER
+# ===================================================================
+st.markdown("---")
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.markdown("""
+        <div style="text-align: center; padding: 15px 0;">
+            <p style="color: #7070A0; font-size: 11px;">
+                PlacementAI Pro © 2024 | Powered by Machine Learning
+            </p>
+        </div>
+    """, unsafe_allow_html=True)

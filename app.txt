@@ -1,0 +1,453 @@
+import streamlit as st
+import pickle
+import pandas as pd
+
+# Load Model
+model = pickle.load(open("placement_model.pkl", "rb"))
+
+# Page Config
+st.set_page_config(
+    page_title="PlacementAI",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# =========================
+# CUSTOM CSS
+# =========================
+
+st.markdown("""
+<style>
+
+/* Main Background */
+.stApp {
+    background: linear-gradient(135deg, #0B1020, #111827);
+    color: white;
+}
+
+/* Hide Streamlit Header */
+header {
+    visibility: hidden;
+}
+
+/* Main Title */
+.main-title {
+    font-size: 52px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 5px;
+}
+
+/* Subtitle */
+.sub-title {
+    font-size: 18px;
+    color: #D1D5DB;
+    margin-bottom: 30px;
+}
+
+/* Glass Card */
+.sidebar-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(14px);
+    padding: 30px;
+    border-radius: 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    margin-bottom: 20px;
+}
+
+/* Analytics Card */
+.analytics-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(14px);
+    padding: 30px;
+    border-radius: 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* Result Card */
+.result-card {
+    background: linear-gradient(135deg, #7C3AED, #EC4899);
+    padding: 40px;
+    border-radius: 30px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(236,72,153,0.35);
+    margin-top: 15px;
+}
+
+.info-card {
+    background: linear-gradient(135deg, #1E293B, #334155);
+    padding: 35px;
+    border-radius: 30px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    margin-top: 15px;
+}
+
+/* Metrics */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 18px;
+    border-radius: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    color: white;
+}
+
+/* Button */
+.stButton>button {
+    width: 100%;
+    height: 55px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(90deg, #8B5CF6, #EC4899);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s;
+    box-shadow: 0 0 25px rgba(236,72,153,0.4);
+}
+
+.stButton>button:hover {
+    transform: scale(1.03);
+}
+
+/* Progress Bar */
+.stProgress > div > div > div {
+    background: linear-gradient(90deg, #8B5CF6, #EC4899);
+}
+
+/* Input Labels */
+label {
+    color: #F9FAFB !important;
+    font-weight: 500;
+}
+
+/* Selectbox */
+.stSelectbox div[data-baseweb="select"] {
+    background-color: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+/* Slider */
+.stSlider {
+    color: white;
+}
+
+/* Caption */
+.css-10trblm {
+    color: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# HEADER
+# =========================
+
+st.markdown(
+    """
+    <div class="main-title">
+        🚀 PlacementAI Dashboard
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <div class="sub-title">
+        AI-powered student placement prediction system using Machine Learning
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================
+# PREMIUM TOP ANALYTICS
+# =========================
+
+st.markdown("""
+<style>
+
+/* Premium Analytics Cards */
+.analytics-box {
+    padding: 22px;
+    border-radius: 24px;
+    color: white;
+    text-align: center;
+    transition: 0.3s;
+    margin-bottom: 10px;
+}
+
+.analytics-box:hover {
+    transform: translateY(-5px);
+}
+
+/* Different Colors */
+.box1 {
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    box-shadow: 0 8px 25px rgba(99,102,241,0.35);
+}
+
+.box2 {
+    background: linear-gradient(135deg, #EC4899, #F43F5E);
+    box-shadow: 0 8px 25px rgba(236,72,153,0.35);
+}
+
+.box3 {
+    background: linear-gradient(135deg, #06B6D4, #3B82F6);
+    box-shadow: 0 8px 25px rgba(6,182,212,0.35);
+}
+
+.box4 {
+    background: linear-gradient(135deg, #10B981, #14B8A6);
+    box-shadow: 0 8px 25px rgba(16,185,129,0.35);
+}
+
+/* Title */
+.analytics-title {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+
+/* Value */
+.analytics-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+c1, c2, c3, c4 = st.columns(4)
+
+with c1:
+    st.markdown("""
+    <div class="analytics-box box1">
+        <div class="analytics-title">🎓 ML Model</div>
+        <div class="analytics-value">Random Forest</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c2:
+    st.markdown("""
+    <div class="analytics-box box2">
+        <div class="analytics-title">📊 Accuracy</div>
+        <div class="analytics-value">79.5%</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c3:
+    st.markdown("""
+    <div class="analytics-box box3">
+        <div class="analytics-title">⚡ Prediction</div>
+        <div class="analytics-value">Real-Time</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c4:
+    st.markdown("""
+    <div class="analytics-box box4">
+        <div class="analytics-title">💡 Type</div>
+        <div class="analytics-value">Classification</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================
+# MAIN LAYOUT
+# =========================
+
+left, space, right = st.columns([1, 0.08, 1.25])
+
+# =========================
+# LEFT SIDE INPUTS
+# =========================
+
+with left:
+
+    st.markdown("""
+    <div class="info-card">
+        <h2>📥 Student Information</h2>
+        <p>Enter student academic and skill details</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("")
+
+    student_id = st.number_input(
+        "🆔 Student ID",
+        min_value=1,
+        value=101
+    )
+
+    cgpa = st.slider(
+        "📚 CGPA",
+        0.0, 10.0, 7.5
+    )
+
+    internships = st.slider(
+        "💼 Internships",
+        0, 5, 1
+    )
+
+    projects = st.slider(
+        "🛠 Projects",
+        0, 10, 2
+    )
+
+    workshops = st.slider(
+        "📜 Workshops / Certifications",
+        0, 10, 2
+    )
+
+    aptitude = st.slider(
+        "🧠 Aptitude Test Score",
+        0, 100, 70
+    )
+
+    soft_skills = st.slider(
+        "🗣 Soft Skills Rating",
+        0.0, 10.0, 6.0
+    )
+
+    extracurricular = st.selectbox(
+        "🎯 Extracurricular Activities",
+        ["No", "Yes"]
+    )
+
+    placement_training = st.selectbox(
+        "🏢 Placement Training",
+        ["No", "Yes"]
+    )
+
+    ssc_marks = st.slider(
+        "🏫 SSC Marks",
+        0, 100, 75
+    )
+
+    hsc_marks = st.slider(
+        "🎓 HSC Marks",
+        0, 100, 78
+    )
+
+    st.write("")
+
+    predict_btn = st.button("🚀 Analyze Placement Probability")
+
+# =========================
+# RIGHT SIDE OUTPUT
+# =========================
+
+with right:
+
+    st.markdown("""
+<div class="info-card">
+    <h2>📈 AI Prediction Insights</h2>
+    <p>
+        This system analyzes academic performance,
+        internships, aptitude, communication skills,
+        and training data using Machine Learning.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+    st.write("")
+
+    if predict_btn:
+
+        # Convert categorical
+        extracurricular = 1 if extracurricular == "Yes" else 0
+        placement_training = 1 if placement_training == "Yes" else 0
+
+        # Input DataFrame
+        input_data = pd.DataFrame([{
+            "StudentID": student_id,
+            "CGPA": cgpa,
+            "Internships": internships,
+            "Projects": projects,
+            "Workshops/Certifications": workshops,
+            "AptitudeTestScore": aptitude,
+            "SoftSkillsRating": soft_skills,
+            "ExtracurricularActivities": extracurricular,
+            "PlacementTraining": placement_training,
+            "SSC_Marks": ssc_marks,
+            "HSC_Marks": hsc_marks
+        }])
+
+        # Prediction
+        prediction = model.predict(input_data)[0]
+
+        probability = model.predict_proba(input_data)[0][prediction]
+
+        # Result Card
+       
+
+        if prediction == 1:
+
+            st.markdown(f"""
+                <div class="result-card">
+                <h1>✅ Placement Chances High</h1>
+                <h2>{probability*100:.2f}% Probability</h2>
+                <p>
+                    Excellent profile detected with strong placement potential.
+                </p>
+                </div>
+            """, unsafe_allow_html=True)
+
+        else:
+
+            st.markdown(f"""
+            <div class="result-card">
+                <h1>❌ Placement Chances Low</h1>
+                <h2>{probability*100:.2f}% Probability</h2>
+                <p>
+                Student needs improvement in skills and academics.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.write("")
+
+        # Progress
+        st.subheader("📊 Placement Confidence")
+
+        st.progress(int(probability * 100))
+
+        st.write("")
+
+        # Suggestions
+        st.subheader("💡 AI Recommendations")
+
+        if cgpa < 7:
+            st.warning("📚 Improve CGPA for better placement opportunities.")
+
+        if internships < 1:
+            st.warning("💼 Gain internship experience.")
+
+        if projects < 2:
+            st.warning("🛠 Build more real-world projects.")
+
+        if aptitude < 60:
+            st.warning("🧠 Improve aptitude and reasoning skills.")
+
+        if soft_skills < 5:
+            st.warning("🗣 Improve communication and presentation skills.")
+
+        if probability > 0.80:
+            st.success("🎯 Strong candidate profile detected.")
+
+# Footer
+st.write("")
+st.write("")
+st.caption("Built with ❤️ using Streamlit & Machine Learning")
