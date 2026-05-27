@@ -374,9 +374,9 @@ with st.sidebar:
             <p style="font-size:12px;color:#8080C0;margin:3px 0;">
                 <b style="color:#C0C0E0;">Algorithm</b><br>Random Forest Classifier</p>
             <p style="font-size:12px;color:#8080C0;margin:8px 0 3px;">
-                <b style="color:#C0C0E0;">Accuracy</b><br>79.5% validated</p>
+                <b style="color:#C0C0E0;">Accuracy</b><br>92.5% validated</p>
             <p style="font-size:12px;color:#8080C0;margin:8px 0 3px;">
-                <b style="color:#C0C0E0;">Features</b><br>11 academic + skill signals</p>
+                <b style="color:#C0C0E0;">Features</b><br>09 academic + skill signals</p>
         </div>
     """, unsafe_allow_html=True)
 
