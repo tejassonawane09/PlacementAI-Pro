@@ -8,10 +8,10 @@ The project is built with **Python, Scikit-learn, Streamlit, and Plotly** and pr
 
 # 🚀 Live Demo
 
-👉 Add your deployed Streamlit link here
+👉 Deployed Streamlit link here
 
 Example:
-https://your-app-name.streamlit.app/
+[https://your-app-name.streamlit.app/](https://placementai-pro-dashboard.streamlit.app/)
 
 ---
 
